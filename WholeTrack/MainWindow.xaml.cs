@@ -461,7 +461,7 @@ namespace WholeTrack
           nextLineY += 14;
         }
 
-        var deathText = "Vivante";
+        var deathText = p.Gender == "Femme" ? "Vivante" : "Vivant";
         if (p.IsDead)
         {
           deathText = p.DeathDate == null || p.DeathDate.IsUnknown
