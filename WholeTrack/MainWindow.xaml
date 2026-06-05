@@ -25,6 +25,12 @@
             <TextBlock Text="Occupation" Margin="0,6,0,0" />
             <TextBox x:Name="OccupationTextBox" />
 
+            <TextBlock Text="Genre" Margin="0,6,0,0" />
+            <ComboBox x:Name="GenderComboBox" SelectedIndex="0" Width="140">
+                <ComboBoxItem Content="Homme" />
+                <ComboBoxItem Content="Femme" />
+            </ComboBox>
+
             <TextBlock Text="Date de naissance" Margin="0,6,0,0" />
             <DatePicker x:Name="BirthDatePicker" SelectedDate="1900-01-01" />
             <StackPanel Orientation="Horizontal" Margin="0,4,0,0">

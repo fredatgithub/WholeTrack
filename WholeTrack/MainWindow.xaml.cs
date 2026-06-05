@@ -108,6 +108,8 @@ namespace WholeTrack
         ? UniversalDateTime.Unknown
         : UniversalDateTime.FromDateTime(BirthDatePicker.SelectedDate.Value, BirthBCCheckBox.IsChecked == true);
 
+      var gender = (GenderComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty;
+
       UniversalDateTime deathDate = UniversalDateTime.Unknown;
       if (IsDeadCheckBox.IsChecked == true)
       {
@@ -127,6 +129,7 @@ namespace WholeTrack
         LastName = last,
         BirthDate = birthDate,
         Occupation = OccupationTextBox.Text?.Trim(),
+        Gender = gender,
         IsDead = IsDeadCheckBox.IsChecked == true,
         DeathDate = deathDate
       };
@@ -139,6 +142,7 @@ namespace WholeTrack
       FirstNameTextBox.Text = string.Empty;
       LastNameTextBox.Text = string.Empty;
       OccupationTextBox.Text = string.Empty;
+      GenderComboBox.SelectedIndex = 0;
       BirthDatePicker.SelectedDate = DateTime.Today;
       BirthUnknownCheckBox.IsChecked = false;
       BirthBCCheckBox.IsChecked = false;
@@ -336,9 +340,13 @@ namespace WholeTrack
         Canvas.SetTop(ellipse, baselineY - 4);
         TimelineCanvas.Children.Add(ellipse);
 
+        var nameText = $"{p.LastName} {p.FirstName}";
+        if (!string.IsNullOrWhiteSpace(p.Gender))
+          nameText += $" ({p.Gender})";
+
         var nameTb = new TextBlock
         {
-          Text = $"{p.LastName} {p.FirstName}",
+          Text = nameText,
           FontSize = 12
         };
         Canvas.SetLeft(nameTb, x - 40);

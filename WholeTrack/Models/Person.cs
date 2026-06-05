@@ -23,5 +23,8 @@ namespace WholeTrack.Models
 
     [DataMember]
     public string Occupation { get; set; }
+
+    [DataMember]
+    public string Gender { get; set; }
   }
 }
