@@ -435,6 +435,18 @@ namespace WholeTrack
         double y = baselineY + 10 + i * 30;
         requiredHeight = Math.Max(requiredHeight, y + 60);
 
+        var connectorLine = new System.Windows.Shapes.Line
+        {
+          X1 = x,
+          X2 = x,
+          Y1 = baselineY,
+          Y2 = y,
+          Stroke = Brushes.Gray,
+          StrokeThickness = 1,
+          StrokeDashArray = new DoubleCollection { 2, 2 }
+        };
+        TimelineCanvas.Children.Add(connectorLine);
+
         var ellipse = new System.Windows.Shapes.Ellipse
         {
           Width = 8,
