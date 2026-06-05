@@ -14,7 +14,7 @@
 
         <!-- Left: add person -->
         <StackPanel Grid.Column="0" Margin="8" VerticalAlignment="Top">
-            <TextBlock FontWeight="Bold" FontSize="14" Text="Ajouter un personnage" Margin="0,0,0,8" />
+            <TextBlock x:Name="FormHeaderTextBlock" FontWeight="Bold" FontSize="14" Text="Ajouter un personnage" Margin="0,0,0,8" />
 
             <TextBlock Text="Nom" />
             <TextBox x:Name="LastNameTextBox" />
@@ -48,7 +48,10 @@
                 <CheckBox x:Name="DeathBCCheckBox" Content="Avant J.-C." VerticalAlignment="Center" Margin="12,0,0,0" />
             </StackPanel>
 
-            <Button x:Name="AddButton" Content="Ajouter" Margin="0,12,0,0" Width="100" Click="AddButton_Click" />
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                <Button x:Name="AddButton" Content="Ajouter" Width="100" Click="AddButton_Click" />
+                <Button x:Name="CancelEditButton" Content="Annuler" Width="100" Margin="12,0,0,0" Click="CancelEditButton_Click" Visibility="Collapsed" />
+            </StackPanel>
 
         </StackPanel>
 

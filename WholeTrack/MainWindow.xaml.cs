@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using WholeTrack.Models;
 
@@ -17,6 +18,7 @@ namespace WholeTrack
   public partial class MainWindow : Window
   {
     private List<Person> _persons = new List<Person>();
+    private Person _selectedPerson;
     private readonly string _dataFile;
     private readonly string _settingsFile;
     private double _basePxPerYear = 50.0;
@@ -123,22 +125,54 @@ namespace WholeTrack
         }
       }
 
-      var p = new Person
+      if (_selectedPerson != null)
       {
-        FirstName = first,
-        LastName = last,
-        BirthDate = birthDate,
-        Occupation = OccupationTextBox.Text?.Trim(),
-        Gender = gender,
-        IsDead = IsDeadCheckBox.IsChecked == true,
-        DeathDate = deathDate
-      };
+        _selectedPerson.FirstName = first;
+        _selectedPerson.LastName = last;
+        _selectedPerson.BirthDate = birthDate;
+        _selectedPerson.Occupation = OccupationTextBox.Text?.Trim();
+        _selectedPerson.Gender = gender;
+        _selectedPerson.IsDead = IsDeadCheckBox.IsChecked == true;
+        _selectedPerson.DeathDate = deathDate;
+      }
+      else
+      {
+        var p = new Person
+        {
+          FirstName = first,
+          LastName = last,
+          BirthDate = birthDate,
+          Occupation = OccupationTextBox.Text?.Trim(),
+          Gender = gender,
+          IsDead = IsDeadCheckBox.IsChecked == true,
+          DeathDate = deathDate
+        };
+        _persons.Add(p);
+      }
 
-      _persons.Add(p);
       SavePersons();
       RenderTimeline();
+      ResetForm();
+    }
 
-      // clear inputs
+    private void ZoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+      _scale = e.NewValue;
+      RenderTimeline();
+    }
+
+    private void CancelEditButton_Click(object sender, RoutedEventArgs e)
+    {
+      ResetForm();
+    }
+
+    private void ResetForm()
+    {
+      _selectedPerson = null;
+      FormHeaderTextBlock.Text = "Ajouter un personnage";
+      AddButton.Content = "Ajouter";
+      CancelEditButton.Visibility = Visibility.Collapsed;
+
       FirstNameTextBox.Text = string.Empty;
       LastNameTextBox.Text = string.Empty;
       OccupationTextBox.Text = string.Empty;
@@ -154,10 +188,58 @@ namespace WholeTrack
       DeathBCCheckBox.IsEnabled = false;
     }
 
-    private void ZoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    private void PopulateForm(Person p)
     {
-      _scale = e.NewValue;
-      RenderTimeline();
+      _selectedPerson = p;
+      FormHeaderTextBlock.Text = "Modifier un personnage";
+      AddButton.Content = "Enregistrer";
+      CancelEditButton.Visibility = Visibility.Visible;
+
+      LastNameTextBox.Text = p.LastName;
+      FirstNameTextBox.Text = p.FirstName;
+      OccupationTextBox.Text = p.Occupation;
+      GenderComboBox.SelectedIndex = p.Gender == "Femme" ? 1 : 0;
+
+      BirthUnknownCheckBox.IsChecked = p.BirthDate?.IsUnknown == true;
+      BirthBCCheckBox.IsChecked = p.BirthDate?.IsBC == true;
+      if (p.BirthDate?.IsUnknown == true)
+      {
+        BirthDatePicker.SelectedDate = null;
+        BirthDatePicker.IsEnabled = false;
+        BirthBCCheckBox.IsEnabled = false;
+      }
+      else
+      {
+        BirthDatePicker.SelectedDate = p.BirthDate?.ToDateTime() ?? DateTime.Today;
+        BirthDatePicker.IsEnabled = true;
+        BirthBCCheckBox.IsEnabled = true;
+      }
+
+      IsDeadCheckBox.IsChecked = p.IsDead;
+      if (p.IsDead)
+      {
+        DeathUnknownCheckBox.IsChecked = p.DeathDate?.IsUnknown == true;
+        DeathBCCheckBox.IsChecked = p.DeathDate?.IsBC == true;
+        DeathDatePicker.SelectedDate = p.DeathDate?.ToDateTime();
+        DeathDatePicker.IsEnabled = p.DeathDate != null && !p.DeathDate.IsUnknown;
+        DeathBCCheckBox.IsEnabled = DeathUnknownCheckBox.IsChecked != true;
+      }
+      else
+      {
+        DeathDatePicker.IsEnabled = false;
+        DeathDatePicker.SelectedDate = null;
+        DeathUnknownCheckBox.IsChecked = false;
+        DeathBCCheckBox.IsChecked = false;
+        DeathBCCheckBox.IsEnabled = false;
+      }
+    }
+
+    private void PersonElement_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+      if (sender is FrameworkElement element && element.Tag is Person person)
+      {
+        PopulateForm(person);
+      }
     }
 
     private void LoadPersons()
@@ -275,8 +357,11 @@ namespace WholeTrack
           {
             Text = text,
             FontSize = 11,
-            Foreground = Brushes.Black
+            Foreground = Brushes.Blue,
+            Cursor = Cursors.Hand
           };
+          itemTb.Tag = p;
+          itemTb.MouseLeftButtonUp += PersonElement_MouseLeftButtonUp;
           Canvas.SetLeft(itemTb, 10);
           Canvas.SetTop(itemTb, 30 + i * 20);
           TimelineCanvas.Children.Add(itemTb);
@@ -334,8 +419,11 @@ namespace WholeTrack
         {
           Width = 8,
           Height = 8,
-          Fill = p.IsDead ? Brushes.DarkRed : Brushes.DarkBlue
+          Fill = p.IsDead ? Brushes.DarkRed : Brushes.DarkBlue,
+          Cursor = Cursors.Hand
         };
+        ellipse.Tag = p;
+        ellipse.MouseLeftButtonUp += PersonElement_MouseLeftButtonUp;
         Canvas.SetLeft(ellipse, x - 4);
         Canvas.SetTop(ellipse, baselineY - 4);
         TimelineCanvas.Children.Add(ellipse);
@@ -347,8 +435,12 @@ namespace WholeTrack
         var nameTb = new TextBlock
         {
           Text = nameText,
-          FontSize = 12
+          FontSize = 12,
+          Cursor = Cursors.Hand,
+          Foreground = Brushes.Blue
         };
+        nameTb.Tag = p;
+        nameTb.MouseLeftButtonUp += PersonElement_MouseLeftButtonUp;
         Canvas.SetLeft(nameTb, x - 40);
         Canvas.SetTop(nameTb, y);
         TimelineCanvas.Children.Add(nameTb);
