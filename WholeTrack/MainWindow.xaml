@@ -68,7 +68,7 @@
             </StackPanel>
 
             <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1">
-                <ScrollViewer x:Name="TimelineScrollViewer" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer x:Name="TimelineScrollViewer" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible">
                     <Canvas x:Name="TimelineCanvas" MinHeight="200" Background="White" />
                 </ScrollViewer>
             </Border>
