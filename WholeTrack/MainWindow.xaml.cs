@@ -389,7 +389,8 @@ namespace WholeTrack
 
       if (knownBirthPersons.Count > 0)
       {
-        for (int y = minYear; y <= maxYear; y++)
+        var yearStep = DetermineTimelineStep(minYear, maxYear);
+        for (int y = minYear; y <= maxYear; y += yearStep)
         {
           double x = (y - minYear) * pxPerYear + 50;
           var line = new System.Windows.Shapes.Line
@@ -498,6 +499,16 @@ namespace WholeTrack
         Canvas.SetTop(deathTb, nextLineY);
         TimelineCanvas.Children.Add(deathTb);
       }
+    }
+
+    private int DetermineTimelineStep(int minYear, int maxYear)
+    {
+      var yearRange = maxYear - minYear;
+      if (yearRange <= 20)
+        return 1;
+      if (yearRange <= 200)
+        return 10;
+      return 100;
     }
 
     private void SaveWindowSettings()
