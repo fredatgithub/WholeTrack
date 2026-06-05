@@ -460,6 +460,24 @@ namespace WholeTrack
         Canvas.SetTop(ellipse, baselineY - 4);
         TimelineCanvas.Children.Add(ellipse);
 
+        // Show death date above the timeline point when known or indicate unknown if deceased
+        if (p.IsDead)
+        {
+          var deathLabelText = p.DeathDate == null || p.DeathDate.IsUnknown
+            ? "Décès : Inconnue"
+            : p.DeathDate.ToString();
+
+          var deathAboveTb = new TextBlock
+          {
+            Text = deathLabelText,
+            FontSize = 10,
+            Foreground = Brushes.DarkRed
+          };
+          Canvas.SetLeft(deathAboveTb, x - 40);
+          Canvas.SetTop(deathAboveTb, baselineY - 26);
+          TimelineCanvas.Children.Add(deathAboveTb);
+        }
+
         var nameText = $"{p.LastName} {p.FirstName}";
         if (!string.IsNullOrWhiteSpace(p.Gender))
           nameText += $" ({p.Gender})";
