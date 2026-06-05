@@ -7,6 +7,39 @@
         mc:Ignorable="d"
         Title="Time track of geniuses" Height="450" Width="800">
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Left: add person -->
+        <StackPanel Grid.Column="0" Margin="8" VerticalAlignment="Top">
+            <TextBlock FontWeight="Bold" FontSize="14" Text="Ajouter un personnage" Margin="0,0,0,8" />
+
+            <TextBlock Text="Nom" />
+            <TextBox x:Name="LastNameTextBox" />
+
+            <TextBlock Text="Prénom" Margin="0,6,0,0" />
+            <TextBox x:Name="FirstNameTextBox" />
+
+            <TextBlock Text="Date de naissance" Margin="0,6,0,0" />
+            <DatePicker x:Name="BirthDatePicker" SelectedDate="1900-01-01" />
+
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <CheckBox x:Name="IsDeadCheckBox" VerticalAlignment="Center" Content="Décédé" Checked="IsDeadCheckBox_Checked" Unchecked="IsDeadCheckBox_Unchecked" />
+                <TextBlock Text="Date de décès" Margin="12,0,0,0" VerticalAlignment="Center" />
+            </StackPanel>
+            <DatePicker x:Name="DeathDatePicker" IsEnabled="False" />
+
+            <Button x:Name="AddButton" Content="Ajouter" Margin="0,12,0,0" Width="100" Click="AddButton_Click" />
+
+        </StackPanel>
+
+        <!-- Right: timeline -->
+        <Border Grid.Column="1" BorderBrush="LightGray" BorderThickness="1" Margin="8">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <Canvas x:Name="TimelineCanvas" Height="200" Background="White" />
+            </ScrollViewer>
+        </Border>
     </Grid>
 </Window>
