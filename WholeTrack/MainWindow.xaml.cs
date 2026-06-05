@@ -521,7 +521,8 @@ namespace WholeTrack
           Top = this.Top,
           Width = this.Width,
           Height = this.Height,
-          WindowState = this.WindowState
+          WindowState = this.WindowState,
+          Zoom = _scale
         };
         var ser = new DataContractJsonSerializer(typeof(WindowSettings));
         using (var fs = File.Create(_settingsFile))
@@ -549,6 +550,9 @@ namespace WholeTrack
             this.Width = data.Width;
             this.Height = data.Height;
             this.WindowState = data.WindowState;
+            _scale = data.Zoom > 0 ? data.Zoom : _scale;
+            if (ZoomSlider != null)
+              ZoomSlider.Value = _scale;
           }
         }
       }
@@ -568,6 +572,8 @@ namespace WholeTrack
       public double Height { get; set; }
       [DataMember]
       public WindowState WindowState { get; set; }
+      [DataMember]
+      public double Zoom { get; set; } = 1.0;
     }
   }
 }
