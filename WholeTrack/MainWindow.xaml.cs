@@ -499,6 +499,12 @@ namespace WholeTrack
         Canvas.SetTop(deathTb, nextLineY);
         TimelineCanvas.Children.Add(deathTb);
       }
+
+      if (TimelineScrollViewer != null)
+      {
+        TimelineScrollViewer.ScrollToHorizontalOffset(0);
+        TimelineScrollViewer.ScrollToVerticalOffset(0);
+      }
     }
 
     private int DetermineTimelineStep(int minYear, int maxYear)
