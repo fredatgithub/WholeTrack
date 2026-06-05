@@ -19,6 +19,8 @@ namespace WholeTrack
     private List<Person> _persons = new List<Person>();
     private readonly string _dataFile;
     private readonly string _settingsFile;
+    private double _basePxPerYear = 50.0;
+    private double _scale = 1.0;
 
     public MainWindow()
     {
@@ -91,6 +93,12 @@ namespace WholeTrack
       DeathDatePicker.SelectedDate = null;
     }
 
+    private void ZoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+      _scale = e.NewValue;
+      RenderTimeline();
+    }
+
     private void LoadPersons()
     {
       try
@@ -102,7 +110,7 @@ namespace WholeTrack
             var ser = new DataContractJsonSerializer(typeof(List<Person>));
             var obj = ser.ReadObject(fs) as List<Person>;
             if (obj != null)
-              _persons = obj;
+              _persons = obj.Where(p => p != null).ToList();
           }
         }
       }
@@ -130,21 +138,25 @@ namespace WholeTrack
 
     private void RenderTimeline()
     {
-      TimelineCanvas.Children.Clear();
+      if (TimelineCanvas == null)
+        return;
 
-      if (_persons == null || _persons.Count == 0)
+      TimelineCanvas.Children.Clear();
+      var persons = _persons?.Where(p => p != null).ToList() ?? new List<Person>();
+
+      if (persons.Count == 0)
       {
         TimelineCanvas.Width = 800;
         return;
       }
 
-      int minYear = _persons.Min(p => p.BirthDate.Year);
-      int maxYear = _persons.Max(p => p.IsDead && p.DeathDate.HasValue ? p.DeathDate.Value.Year : DateTime.Now.Year);
+      int minYear = persons.Min(p => p.BirthDate.Year);
+      int maxYear = persons.Max(p => p.IsDead && p.DeathDate.HasValue ? p.DeathDate.Value.Year : DateTime.Now.Year);
       // add some padding years
       minYear = Math.Min(minYear, DateTime.Now.Year - 100);
       maxYear = Math.Max(maxYear, DateTime.Now.Year + 10);
 
-      const double pxPerYear = 50.0;
+      double pxPerYear = _basePxPerYear * _scale;
       double width = (maxYear - minYear + 1) * pxPerYear + 100;
       TimelineCanvas.Width = width;
       double baselineY = 60;
