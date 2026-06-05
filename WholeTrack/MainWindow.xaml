@@ -27,12 +27,20 @@
 
             <TextBlock Text="Date de naissance" Margin="0,6,0,0" />
             <DatePicker x:Name="BirthDatePicker" SelectedDate="1900-01-01" />
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <CheckBox x:Name="BirthUnknownCheckBox" Content="Inconnue" VerticalAlignment="Center" Checked="BirthUnknownCheckBox_Checked" Unchecked="BirthUnknownCheckBox_Unchecked" />
+                <CheckBox x:Name="BirthBCCheckBox" Content="Avant J.-C." VerticalAlignment="Center" Margin="12,0,0,0" />
+            </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                 <CheckBox x:Name="IsDeadCheckBox" VerticalAlignment="Center" Content="Décédé" Checked="IsDeadCheckBox_Checked" Unchecked="IsDeadCheckBox_Unchecked" />
                 <TextBlock Text="Date de décès" Margin="12,0,0,0" VerticalAlignment="Center" />
             </StackPanel>
             <DatePicker x:Name="DeathDatePicker" IsEnabled="False" />
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <CheckBox x:Name="DeathUnknownCheckBox" Content="Inconnue" VerticalAlignment="Center" Checked="DeathUnknownCheckBox_Checked" Unchecked="DeathUnknownCheckBox_Unchecked" />
+                <CheckBox x:Name="DeathBCCheckBox" Content="Avant J.-C." VerticalAlignment="Center" Margin="12,0,0,0" />
+            </StackPanel>
 
             <Button x:Name="AddButton" Content="Ajouter" Margin="0,12,0,0" Width="100" Click="AddButton_Click" />
 
@@ -51,8 +59,8 @@
             </StackPanel>
 
             <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                    <Canvas x:Name="TimelineCanvas" Height="200" Background="White" />
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <Canvas x:Name="TimelineCanvas" MinHeight="200" Background="White" />
                 </ScrollViewer>
             </Border>
         </Grid>

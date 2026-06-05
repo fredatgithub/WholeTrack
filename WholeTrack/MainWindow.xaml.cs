@@ -26,6 +26,9 @@ namespace WholeTrack
     {
       InitializeComponent();
 
+      DeathBCCheckBox.IsEnabled = false;
+      BirthBCCheckBox.IsEnabled = true;
+
       var appDir = AppDomain.CurrentDomain.BaseDirectory;
       _dataFile = Path.Combine(appDir, "persons.json");
       _settingsFile = Path.Combine(appDir, "windowsettings.json");
@@ -45,13 +48,44 @@ namespace WholeTrack
 
     private void IsDeadCheckBox_Checked(object sender, RoutedEventArgs e)
     {
-      DeathDatePicker.IsEnabled = true;
+      DeathDatePicker.IsEnabled = DeathUnknownCheckBox.IsChecked != true;
+      DeathBCCheckBox.IsEnabled = DeathUnknownCheckBox.IsChecked != true;
     }
 
     private void IsDeadCheckBox_Unchecked(object sender, RoutedEventArgs e)
     {
       DeathDatePicker.IsEnabled = false;
       DeathDatePicker.SelectedDate = null;
+      DeathUnknownCheckBox.IsChecked = false;
+      DeathBCCheckBox.IsChecked = false;
+      DeathBCCheckBox.IsEnabled = false;
+    }
+
+    private void BirthUnknownCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+      BirthDatePicker.IsEnabled = false;
+      BirthBCCheckBox.IsChecked = false;
+      BirthBCCheckBox.IsEnabled = false;
+    }
+
+    private void BirthUnknownCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+      BirthDatePicker.IsEnabled = true;
+      BirthBCCheckBox.IsEnabled = true;
+    }
+
+    private void DeathUnknownCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+      DeathDatePicker.IsEnabled = false;
+      DeathDatePicker.SelectedDate = null;
+      DeathBCCheckBox.IsChecked = false;
+      DeathBCCheckBox.IsEnabled = false;
+    }
+
+    private void DeathUnknownCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+      DeathBCCheckBox.IsEnabled = true;
+      DeathDatePicker.IsEnabled = IsDeadCheckBox.IsChecked == true;
     }
 
     private void AddButton_Click(object sender, RoutedEventArgs e)
@@ -64,20 +98,37 @@ namespace WholeTrack
         return;
       }
 
-      if (!BirthDatePicker.SelectedDate.HasValue)
+      if (BirthUnknownCheckBox.IsChecked != true && !BirthDatePicker.SelectedDate.HasValue)
       {
-        MessageBox.Show("Veuillez sélectionner une date de naissance.", "Erreur", MessageBoxButton.OK, MessageBoxImage.Warning);
+        MessageBox.Show("Veuillez sélectionner une date de naissance ou cocher Inconnue.", "Erreur", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
+      }
+
+      var birthDate = BirthUnknownCheckBox.IsChecked == true
+        ? UniversalDateTime.Unknown
+        : UniversalDateTime.FromDateTime(BirthDatePicker.SelectedDate.Value, BirthBCCheckBox.IsChecked == true);
+
+      UniversalDateTime deathDate = UniversalDateTime.Unknown;
+      if (IsDeadCheckBox.IsChecked == true)
+      {
+        if (DeathUnknownCheckBox.IsChecked == true)
+        {
+          deathDate = UniversalDateTime.Unknown;
+        }
+        else if (DeathDatePicker.SelectedDate.HasValue)
+        {
+          deathDate = UniversalDateTime.FromDateTime(DeathDatePicker.SelectedDate.Value, DeathBCCheckBox.IsChecked == true);
+        }
       }
 
       var p = new Person
       {
         FirstName = first,
         LastName = last,
-        BirthDate = BirthDatePicker.SelectedDate.Value,
+        BirthDate = birthDate,
         Occupation = OccupationTextBox.Text?.Trim(),
         IsDead = IsDeadCheckBox.IsChecked == true,
-        DeathDate = IsDeadCheckBox.IsChecked == true ? DeathDatePicker.SelectedDate : null
+        DeathDate = deathDate
       };
 
       _persons.Add(p);
@@ -89,8 +140,14 @@ namespace WholeTrack
       LastNameTextBox.Text = string.Empty;
       OccupationTextBox.Text = string.Empty;
       BirthDatePicker.SelectedDate = DateTime.Today;
+      BirthUnknownCheckBox.IsChecked = false;
+      BirthBCCheckBox.IsChecked = false;
+      BirthBCCheckBox.IsEnabled = true;
       IsDeadCheckBox.IsChecked = false;
       DeathDatePicker.SelectedDate = null;
+      DeathUnknownCheckBox.IsChecked = false;
+      DeathBCCheckBox.IsChecked = false;
+      DeathBCCheckBox.IsEnabled = false;
     }
 
     private void ZoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -142,52 +199,114 @@ namespace WholeTrack
         return;
 
       TimelineCanvas.Children.Clear();
-      var persons = _persons?.Where(p => p != null).ToList() ?? new List<Person>();
 
-      if (persons.Count == 0)
+      var knownBirthPersons = _persons?.Where(p => p != null && p.BirthDate != null && !p.BirthDate.IsUnknown).ToList() ?? new List<Person>();
+      var unknownBirthPersons = _persons?.Where(p => p != null && (p.BirthDate == null || p.BirthDate.IsUnknown)).ToList() ?? new List<Person>();
+
+      if (knownBirthPersons.Count == 0 && unknownBirthPersons.Count == 0)
       {
         TimelineCanvas.Width = 800;
+        TimelineCanvas.Height = 200;
+        var placeholder = new TextBlock
+        {
+          Text = "Aucun personnage à afficher.",
+          FontSize = 14,
+          Foreground = Brushes.Gray
+        };
+        Canvas.SetLeft(placeholder, 20);
+        Canvas.SetTop(placeholder, 20);
+        TimelineCanvas.Children.Add(placeholder);
         return;
       }
 
-      int minYear = persons.Min(p => p.BirthDate.Year);
-      int maxYear = persons.Max(p => p.IsDead && p.DeathDate.HasValue ? p.DeathDate.Value.Year : DateTime.Now.Year);
-      // add some padding years
-      minYear = Math.Min(minYear, DateTime.Now.Year - 100);
-      maxYear = Math.Max(maxYear, DateTime.Now.Year + 10);
+      int minYear = DateTime.Now.Year - 100;
+      int maxYear = DateTime.Now.Year + 10;
+
+      if (knownBirthPersons.Count > 0)
+      {
+        minYear = knownBirthPersons.Min(p => p.BirthDate.SortYear);
+        maxYear = knownBirthPersons.Max(p => p.IsDead && p.DeathDate != null && !p.DeathDate.IsUnknown
+          ? p.DeathDate.SortYear
+          : DateTime.Now.Year);
+        minYear = Math.Min(minYear, DateTime.Now.Year - 100);
+        maxYear = Math.Max(maxYear, DateTime.Now.Year + 10);
+      }
 
       double pxPerYear = _basePxPerYear * _scale;
       double width = (maxYear - minYear + 1) * pxPerYear + 100;
+      if (width < 800)
+        width = 800;
+
       TimelineCanvas.Width = width;
       double baselineY = 60;
+      double unknownSectionHeight = 0;
+      double requiredHeight = 200;
+      TimelineCanvas.Height = requiredHeight;
 
-      // draw year ticks
-      for (int y = minYear; y <= maxYear; y++)
+      if (unknownBirthPersons.Count > 0)
       {
-        double x = (y - minYear) * pxPerYear + 50;
-        var line = new System.Windows.Shapes.Line
-        {
-          X1 = x,
-          X2 = x,
-          Y1 = baselineY - 6,
-          Y2 = baselineY + 6,
-          Stroke = Brushes.Gray,
-          StrokeThickness = 1
-        };
-        TimelineCanvas.Children.Add(line);
+        unknownSectionHeight = 30 + unknownBirthPersons.Count * 20;
+        baselineY += unknownSectionHeight;
+        requiredHeight = Math.Max(requiredHeight, unknownSectionHeight + 60);
 
-        var tb = new TextBlock
+        var unknownHeader = new TextBlock
         {
-          Text = y.ToString(),
-          Foreground = Brushes.Black,
-          FontSize = 10
+          Text = "Dates de naissance inconnues :",
+          FontSize = 12,
+          FontWeight = FontWeights.Bold,
+          Foreground = Brushes.DarkRed
         };
-        Canvas.SetLeft(tb, x - 12);
-        Canvas.SetTop(tb, baselineY - 26);
-        TimelineCanvas.Children.Add(tb);
+        Canvas.SetLeft(unknownHeader, 10);
+        Canvas.SetTop(unknownHeader, 10);
+        TimelineCanvas.Children.Add(unknownHeader);
+
+        for (int i = 0; i < unknownBirthPersons.Count; i++)
+        {
+          var p = unknownBirthPersons[i];
+          var text = $"{p.LastName} {p.FirstName}";
+          if (!string.IsNullOrWhiteSpace(p.Occupation))
+            text += $" — {p.Occupation}";
+
+          var itemTb = new TextBlock
+          {
+            Text = text,
+            FontSize = 11,
+            Foreground = Brushes.Black
+          };
+          Canvas.SetLeft(itemTb, 10);
+          Canvas.SetTop(itemTb, 30 + i * 20);
+          TimelineCanvas.Children.Add(itemTb);
+        }
       }
 
-      // baseline
+      if (knownBirthPersons.Count > 0)
+      {
+        for (int y = minYear; y <= maxYear; y++)
+        {
+          double x = (y - minYear) * pxPerYear + 50;
+          var line = new System.Windows.Shapes.Line
+          {
+            X1 = x,
+            X2 = x,
+            Y1 = baselineY - 6,
+            Y2 = baselineY + 6,
+            Stroke = Brushes.Gray,
+            StrokeThickness = 1
+          };
+          TimelineCanvas.Children.Add(line);
+
+          var tb = new TextBlock
+          {
+            Text = y.ToString(),
+            Foreground = Brushes.Black,
+            FontSize = 10
+          };
+          Canvas.SetLeft(tb, x - 12);
+          Canvas.SetTop(tb, baselineY - 26);
+          TimelineCanvas.Children.Add(tb);
+        }
+      }
+
       var baseLine = new System.Windows.Shapes.Line
       {
         X1 = 0,
@@ -198,15 +317,15 @@ namespace WholeTrack
         StrokeThickness = 1
       };
       TimelineCanvas.Children.Add(baseLine);
+      TimelineCanvas.Height = requiredHeight;
 
-      // draw persons; stack vertically
-      for (int i = 0; i < _persons.Count; i++)
+      for (int i = 0; i < knownBirthPersons.Count; i++)
       {
-        var p = _persons[i];
-        double x = (p.BirthDate.Year - minYear) * pxPerYear + 50;
-        double y = baselineY + 10 + i * 22;
+        var p = knownBirthPersons[i];
+        double x = (p.BirthDate.SortYear - minYear) * pxPerYear + 50;
+        double y = baselineY + 10 + i * 30;
+        requiredHeight = Math.Max(requiredHeight, y + 60);
 
-        // marker
         var ellipse = new System.Windows.Shapes.Ellipse
         {
           Width = 8,
@@ -226,6 +345,8 @@ namespace WholeTrack
         Canvas.SetTop(nameTb, y);
         TimelineCanvas.Children.Add(nameTb);
 
+        double nextLineY = y + 16;
+
         if (!string.IsNullOrWhiteSpace(p.Occupation))
         {
           var occTb = new TextBlock
@@ -235,9 +356,28 @@ namespace WholeTrack
             Foreground = Brushes.Gray
           };
           Canvas.SetLeft(occTb, x - 40);
-          Canvas.SetTop(occTb, y + 14);
+          Canvas.SetTop(occTb, nextLineY);
           TimelineCanvas.Children.Add(occTb);
+          nextLineY += 14;
         }
+
+        var deathText = "Vivante";
+        if (p.IsDead)
+        {
+          deathText = p.DeathDate == null || p.DeathDate.IsUnknown
+            ? "Décès : Inconnue"
+            : $"Décès : {p.DeathDate}";
+        }
+
+        var deathTb = new TextBlock
+        {
+          Text = deathText,
+          FontSize = 10,
+          Foreground = Brushes.DarkSlateGray
+        };
+        Canvas.SetLeft(deathTb, x - 40);
+        Canvas.SetTop(deathTb, nextLineY);
+        TimelineCanvas.Children.Add(deathTb);
       }
     }
 

@@ -13,13 +13,13 @@ namespace WholeTrack.Models
     public string LastName { get; set; }
 
     [DataMember]
-    public DateTime BirthDate { get; set; }
+    public UniversalDateTime BirthDate { get; set; } = UniversalDateTime.Unknown;
 
     [DataMember]
     public bool IsDead { get; set; }
 
     [DataMember]
-    public DateTime? DeathDate { get; set; }
+    public UniversalDateTime DeathDate { get; set; } = UniversalDateTime.Unknown;
 
     [DataMember]
     public string Occupation { get; set; }
