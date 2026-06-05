@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -74,6 +73,7 @@ namespace WholeTrack
         FirstName = first,
         LastName = last,
         BirthDate = BirthDatePicker.SelectedDate.Value,
+        Occupation = OccupationTextBox.Text?.Trim(),
         IsDead = IsDeadCheckBox.IsChecked == true,
         DeathDate = IsDeadCheckBox.IsChecked == true ? DeathDatePicker.SelectedDate : null
       };
@@ -85,6 +85,7 @@ namespace WholeTrack
       // clear inputs
       FirstNameTextBox.Text = string.Empty;
       LastNameTextBox.Text = string.Empty;
+      OccupationTextBox.Text = string.Empty;
       BirthDatePicker.SelectedDate = DateTime.Today;
       IsDeadCheckBox.IsChecked = false;
       DeathDatePicker.SelectedDate = null;
@@ -212,6 +213,19 @@ namespace WholeTrack
         Canvas.SetLeft(nameTb, x - 40);
         Canvas.SetTop(nameTb, y);
         TimelineCanvas.Children.Add(nameTb);
+
+        if (!string.IsNullOrWhiteSpace(p.Occupation))
+        {
+          var occTb = new TextBlock
+          {
+            Text = p.Occupation,
+            FontSize = 10,
+            Foreground = Brushes.Gray
+          };
+          Canvas.SetLeft(occTb, x - 40);
+          Canvas.SetTop(occTb, y + 14);
+          TimelineCanvas.Children.Add(occTb);
+        }
       }
     }
 

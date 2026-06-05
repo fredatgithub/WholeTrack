@@ -22,6 +22,9 @@
             <TextBlock Text="Prénom" Margin="0,6,0,0" />
             <TextBox x:Name="FirstNameTextBox" />
 
+            <TextBlock Text="Occupation" Margin="0,6,0,0" />
+            <TextBox x:Name="OccupationTextBox" />
+
             <TextBlock Text="Date de naissance" Margin="0,6,0,0" />
             <DatePicker x:Name="BirthDatePicker" SelectedDate="1900-01-01" />
 
