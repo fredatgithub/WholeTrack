@@ -256,11 +256,30 @@ namespace WholeTrack
               _persons = obj.Where(p => p != null).ToList();
           }
         }
+
+        EnsureEinsteinIsPresent();
       }
       catch (Exception ex)
       {
         MessageBox.Show("Erreur en chargeant les personnages: " + ex.Message);
       }
+    }
+
+    private void EnsureEinsteinIsPresent()
+    {
+      if (_persons.Any(p => string.Equals(p.FirstName, "Albert", StringComparison.OrdinalIgnoreCase) && string.Equals(p.LastName, "Einstein", StringComparison.OrdinalIgnoreCase)))
+        return;
+
+      _persons.Add(new Person
+      {
+        FirstName = "Albert",
+        LastName = "Einstein",
+        BirthDate = UniversalDateTime.FromDateTime(new DateTime(1879, 3, 14)),
+        IsDead = true,
+        DeathDate = UniversalDateTime.FromDateTime(new DateTime(1955, 4, 18)),
+        Occupation = "Physicien",
+        Gender = "Homme"
+      });
     }
 
     private void SavePersons()
