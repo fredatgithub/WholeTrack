@@ -463,9 +463,17 @@ namespace WholeTrack
         // Show death date above the timeline point when known or indicate unknown if deceased
         if (p.IsDead)
         {
-          var deathLabelText = p.DeathDate == null || p.DeathDate.IsUnknown
-            ? "Décès : Inconnue"
-            : p.DeathDate.ToString();
+          string deathLabelText;
+          if (p.DeathDate == null || p.DeathDate.IsUnknown)
+          {
+            deathLabelText = "Décès : Inconnue";
+          }
+          else
+          {
+            var year = p.DeathDate.Year.HasValue ? p.DeathDate.Year.Value.ToString() : p.DeathDate.SortYear.ToString();
+            var suffix = p.DeathDate.IsBC ? " av. J.-C." : string.Empty;
+            deathLabelText = year + suffix;
+          }
 
           var deathAboveTb = new TextBlock
           {
